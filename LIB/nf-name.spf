@@ -1,0 +1,73 @@
+\ Преобразователь выражений вида '?.?', где ?.? - ascii-символы - от 1-го до 4-х штук в одинарное число
+
+: NOTFOUND \ a u -- n  
+  DUP >R 2DUP OVER + 1- C@  0x27 = SWAP C@ 0x27 = AND R> 3 7 WITHIN AND 0=
+  IF NOTFOUND EXIT THEN 0 -ROT  2- SWAP 1+ SWAP OVER + 1-
+  DO 8 LSHIFT I C@ + -1 +LOOP LIT, ;
+
+: LOAD-LEX ( A U -- ) DP @ SWAP DUP ALLOT MOVE 0 C, ;
+
+: load-text ( -- a u )
+  5 ALLOT DP @ >R
+  BEGIN NextWord ( -- a u )
+  2DUP  DUP  2 = SWAP 1 = OR  \ a u a f
+        IF   DUP  W@ DUP ';M' = SWAP DUP 'm)' = SWAP DUP 'c)' = SWAP '")' = OR OR OR SWAP 
+                  C@ DUP ';'  = SWAP DUP '"'  = SWAP DUP '}'  = SWAP ']'  = OR OR OR OR \ a u f
+             IF   2DROP 1
+             ELSE OVER C@ '\' =
+                  IF   DROP 0xD PARSE DROP OVER - ERASE  \ a a1 a
+                  ELSE LOAD-LEX THEN 0
+             THEN
+        ELSE DROP DUP 0=
+             IF 2DROP REFILL DROP ELSE LOAD-LEX THEN 0
+        THEN
+  UNTIL
+  DP @ R@ 5 - DP ! 0xE9 C, DUP R@ - ,
+  DUP DP ! R@ SWAP R> - 1-  
+; 
+: LOAD-TEXT ( a u -- )  load-text DLIT,  ;
+
+: load-str ( -- a u )
+  5 ALLOT DP @ >R
+  BEGIN NextWord ( -- a u )
+  2DUP  1 =   \ a u a f
+        IF   B@ ';' =  \ a u f
+             IF   2DROP 1
+             ELSE OVER B@ '\' =
+                  IF   DROP 0xD PARSE DROP OVER - ERASE  \ a a1 a
+                  ELSE LOAD-LEX THEN 0
+             THEN
+        ELSE DROP DUP 0=
+             IF 2DROP REFILL DROP ELSE LOAD-LEX THEN 0
+        THEN
+  UNTIL
+  DP @ R@ 5 - DP ! 0xE9 C, DUP R@ - ,
+  DUP DP ! R@ SWAP R> - 1-
+;
+: LOAD-STR  ( a u -- )  load-str  DLIT,  ;  
+
+VECT lex VECT out 
+: interp  5 ALLOT HERE >R 
+  BEGIN NextWord 2DUP 1 =          
+        IF B@ out = IF 2DROP 1 ELSE 0 THEN
+        ELSE DROP DUP 0=
+             IF 2DROP REFILL DROP ELSE EVALUATE lex THEN 0
+        THEN
+  UNTIL RET,
+  HERE R@ 5 - DP ! 0xE9 C, DUP R@ - , DP ! R> EXECUTE
+;  
+\ Слова-строки многострочные - допускают комментарии вида \ .....
+: T: ( name "text" -- ) : LOAD-TEXT POSTPONE ; ;
+: t: ( name "text" -- ) : LOAD-STR  POSTPONE ; ;
+\ Макросы многострочные - допускают комментарии вида \ .....
+: M: ( name "text" -- ) : IMMEDIATE LOAD-TEXT POSTPONE EVALUATE POSTPONE ; ;
+
+\ замыкания
+: xts ( a u -- xt )
+  DP @ >R 1024  ALLOCATE THROW DUP >R DP !
+  TRUE STATE ! EVALUATE RET, FALSE STATE !
+  R@ DP @ R> -  RESIZE THROW  R> DP ! ;
+
+
+
+

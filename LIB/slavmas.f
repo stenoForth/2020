@@ -1,0 +1,6 @@
+: слава S" слава маслов" TYPE ;
+T: sss слава маслов ;
+STARTLOG
+слава
+sss TYPE
+SEE слава

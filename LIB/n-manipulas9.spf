@@ -1,0 +1,231 @@
+\ стековые манипуляторы, расширенные операторами 
+\ или фиксированно-именованные локальные переменные на стеке параметров
+
+\ 2-х операндные операторы
+I: n&  0x4623 W, C, ; 
+I: n^  0x4633 W, C, ; 
+I: n|  0x460B W, C, ; 
+I: n+  0x4603 W, C, ; 
+I: n-  0x462B W, C, ; 
+I: n=  0x4633 W, C,  0xE883 W, 1 C,  0xC01B W, ; 
+I: n#  0x4633 W, C,  0xD8F7 W,  0xC01B W, ;
+I: n<  0x463B W, C,  0x9D0F W,  0xC0 C,    0xE083 W, 1 C, 0x48   C, ; 
+I: n>  0x463B W, C,  0x9E0F W,  0xC0 C,    0xE083 W, 1 C, 0x48   C, ;
+I: n*  0x6EF7 W, C, ;
+I: n/  0x4E8B W, C,  0x99 C,    0xF1F7 W, ;
+I: n%  0x4E8B W, C,  0x99 C,    0xF1F7 W,  0xC28B W, ;
+
+
+M: aDO   OVER + SWAP ?DO ;    \ макрос ( BOUND ?DO )
+M: I+  ( n -- )  R@ + RP@ ! ; \ макрос: увеличить счетчик цикла на n со стека
+
+: odin  1 ;  : hex  16 ;  : 4cell  32 ;  : kbyte  1024 ;  : mbyte  1048576 ;
+
+: hAlloc  RS=S ALLOCATE THROW S=RS ;
+: hFree   RS=S     FREE THROW S=RS ;
+: hResize RS=S   RESIZE THROW S=RS ;
+
+I: LAMBDA{ ( -- res xt ) 0 BRANCH, >MARK HERE ;
+I: }LAMBDA ( res xt -- ) RET, >R >RESOLVE1 R> LIT, ;
+
+I: FO ` OF ` ` ;  M: EF ENDOF ;
+
+: conv-so   ui! ai! ai i!
+  2000 ALLOCATE THROW ao! 2000 uo! ao o! ao uo ERASE
+  i+( i 1+ is i )  s( o C! o 1+ is o )  
+  BEGIN ''' s  i C@ i+ s i+ ''' s BL s 'F' s 'O' s BL s
+        BEGIN i C@ BL > IF i C@ i+ s 0 ELSE i+ BL s 'E' s 'F' s BL s 1 THEN UNTIL
+  i ai - ui >
+  UNTIL ao o ao -
+;
+: Move RS=S MOVE S=RS ;
+: Search RS=S SEARCH S=RS ;
+: ).(  RS=S . S=RS ;
+: Type RS=S TYPE S=RS ;
+: Emit RS=S EMIT S=RS ;
+: Cr RS=S CR S=RS ;
+: Compare RS=S COMPARE S=RS ;
+
+: S:  : IMMEDIATE load-str conv-so DLIT, ` EVALUATE ` ; ;
+
+S: BaseOperators 
+a ABS                      ! !          0 FALSE
+b C@                       _ FILL       
+c Emit                             
+d DUP                      % MOD        
+e ELSE                     & AND        
+f hFree                             
+g CELL       G aDO         $ ?DO          
+h hAlloc     H WITHIN      * *          
+i 1+         I I           + +          
+j 1+!        J J           , LITERAL    
+k KEY        K EKEY        - -
+l LSHIFT     L LOOP        . ).(
+m MIN        M MAX         / /
+n NEGATE     N +LOOP       < <
+o AGAIN      O BEGIN       = =
+p DS>F       P DEPTH       > >
+q Compare    Q LEAVE       ? IF
+r RSHIFT     R REPEAT      @ @
+s Search     S SPACES      # <>        
+t THEN       T Type               
+u hResize    U UNTIL       ^ XOR
+v EVALUATE   V Move        
+w C!         W WHILE       { LAMBDA{
+x DROP       X EXECUTE     | OR
+y odin       Y TRUE        } }LAMBDA
+z 0<>        Z 0=          ~ INVERT                                                                  
+;                   
+M: XOperators  ` LAMBDA{ I 1+ C@ CASE BaseOperators ENDCASE  ` }LAMBDA  
+;
+: DOR     ( d1 d2 -- d3)  D=@P $ 8 Pa $ -4 A|@P @P|D ;
+: DXOR    ( d1 d2 -- d3)  D=@P $ 8 Pa $ -4 A^@P @P^D ;
+: DAND    ( d1 d2 -- d3)  D=@P $ 8 Pa $ -4 A&@P @P&D ;
+: DINVERT ( d1 -- d2 )    @P~ A~ ;
+: DLSHIFT ( d n -- 'd ) $ 4 D=@P $ 20 C=# C-A D>> C=A @P<< $ 4 @P<< @P|D DROP ;
+: DRSHIFT ( d n -- 'd ) D=@P $ 20 C=# C-A D<< C=A @P>> $ 4 @P>> $ 4 @P|D DROP ;
+: D0<>    ( d -- f ) D0= INVERT ;
+: 1-! ( addr --)   @A-- DROP ;
+: Dodin 1. ;
+: Dnull 0. ;
+: n.0b ( n -- ) 2 BASE ! .0 DECIMAL ;
+: n.0h ( n -- ) HEX .0 DECIMAL ;
+: .BL ( n -- ) >R 0 <# #S #> R> OVER - 0 MAX DUP IF 0 DO BL EMIT LOOP ELSE DROP THEN TYPE ;
+: sqrt ( n -- sqrt )  $ -4 @P=A $ -4 0=@P 0SQRT $ -4 @P=0- $ -4 A=@P ;
+
+\ символы с префиксом " 
+S: DOperators 
+a DABS       Z D0=         ! 2!         0 Dnull
+b W@                       & DAND        
+d 2DUP                     + D+          
+g 4cell                    , 2LITERAL    
+l DLSHIFT                  - D-         
+n DNEGATE                  . D.         
+r DRSHIFT                  < D<         
+w W!                       = D=         
+x 2DROP                    > D>         
+y Dodin                    @ 2@         
+z D0<>                     ^ DXOR
+                           | DOR
+                           ~ DINVERT
+;
+
+S: OptOperators   ^ n^  & n&  | n|  + n+  - n-  * n*  / n/  % n%  = n=  # n#  > n>  < n<  
+; 
+: zifra1  1 ; : zifra2  2 ; : zifra3  3 ; : zifra4  4 ; : zifra5  5 ; 
+: zifra6  6 ; : zifra7  7 ; : zifra8  8 ; : zifra9  9 ; : zifraA 10 ; 
+: zifraB 11 ; : zifraC 12 ; : zifraD 13 ; : zifraE 14 ; : zifraF 15 ; 
+
+: stack0 S0 @ SP! ;
+
+\ символы с префиксом `
+S: Numbers
+1 zifra1  2 zifra2  3 zifra3   4 zifra4  5 zifra5  
+6 zifra6  7 zifra7  8 zifra8   9 zifra9  A zifraA       
+B zifraB  C zifraC  D zifraD   E zifraE  F zifraF
+i 1-      j 1-!     s sqrt     z stack0
+b n.0b    h n.0h    _ .BL      p .0
+;
+
+: CinStr { s a u -- tf }  
+  0 a u + a DO I C@ s = IF DROP TRUE LEAVE THEN LOOP 
+;
+\ парсер + компилятор + оптимизатор
+USER-VALUE XNST 0 TO XNST 
+: NOTFOUND { a u  \ s [ 3 ] ContS XnstMax otl imax  ns } -4 TO s 0 TO otl 
+ 
+     sset( \ offset --                                                              \ положить адрес выбранного самого нижнего параметра на стеке в регистр ESI
+ 		0xF58B W,            	\ MOV     ESI , EBP
+ 		0xC683 W, C, )      	\ ADD     ESI , # offset
+     d=@s(  	0x568B W, C, ) 		\ MOV     EDX ,  n [ESI]                    \ положить выбранный параметр в EDX
+     @s=d(  	0x5689 W, C, ) 		\ MOV     n [ESI] ,  EDX                    \ положить параметр из EDX в выбранную ячейку стека
+     @s=a( \ n --
+		0x4689 W, C,  0x458B W, 0x00 C,  0x6D8D W, 0x4 C, )                 \ снять параметр с вершины стека в выбранную ячейку стека
+    s@s=a( \ n --
+		0x4689 W, C, )          \ MOV     n [ESI] , EAX                     \ скопировать параметр c вершины стека в выбранную ячейку
+     a=@s(  	0x468B W, C, )       	\ MOV     EAX , n [ESI]                     \ положить параметр из выбранной ячейки на вершину стека
+    1@P=A( 	0x4589 W, 0xFC C, )  	\ MOV     FC [EBP] , EAX
+s@P=A=n@S( 	0x468B W, C,         	\ MOV     EAX ,  n [ESI]
+           	0x4589 W, C, )       	\ MOV     s [EBP] , EAX       
+    s@P=A( 	0x4589 W, C, )       	\ MOV     s [EBP] , EAX                 
+    A=n@S( 	0x468B W, C, )       	\ MOV     EAX ,  n [ESI]
+      sPa( 	0x6D8D W, C, )       	\ LEA     EBP ,  s [EBP]
+      1Pa( 	0x6D8D W, 0xFC C, )  	\ LEA     EBP , FC [EBP]
+\ массивы наборов символов операторов 
+34 ContS C! 39 ContS 1+ C! 96 ContS 2+ C!                                           \ управление
+StrBo2O" abcdefghijklnopqrstuvwxyzGHIJKLNOPQRSTUVWXYZ!_,.?@{}~0+-*/%=><#mM^|&;\$ "  \ все базовые
+StrBo" abcdefghijklmnopqrstuvwxyzGHIJKLMNOPQRSTUVWXYZ!_,.?@{}~0]$( "                  \ базовые без двухоперандных
+Str2O" +-*/%=><#^|& "                                                             \ двухоперандные
+
+d?( 49 58 WITHIN )                   h?( 65 71 WITHIN ) \ символ дес-ная, шест-ная цифра
+PDS( d? IF '0' ELSE '7' THEN - )   offs( 1 - -4 * )     \ вычисление смещения для регистра указателя ESI по номеру пар-ра 
+p?( C@ DUP d? >R h? R> OR )                  		\ параметр
+np?( C@ DUP d? >R h? R> OR 0= )              		\ не параметр
+pds0[ I    C@ I C@    PDS ]                  		\ номер ячейки на 1й позиции
+pds1[ I 1+ C@ I 1+ C@ PDS ]                  		\ номер ячейки на 2й позиции
+pds2[ I 2+ C@ I 2+ C@ PDS ]                  		\ номер ячейки на 3й позиции 
+a u + a 1+ 
+?DO I p? 
+         IF   I C@ I C@ PDS DUP XnstMax > IF TO XnstMax I TO imax ELSE DROP THEN    \ определение макс. смещения                       
+         ELSE I C@ ContS 3 CinStr IF 1 I+ THEN
+         THEN
+ LOOP  XnstMax  TO XNST 
+\ анализ наборов последовательностей символов - события
+   b?[ I p? 0x5B   I 1+ C@ =  AND 1 AND ]                                                 		\ установка указателя на начальную ячейку стека
+  (p?[ 0x28 I C@ = I 1+ p? AND I 2+ p? AND 2 AND OR ]                                              	\ присвоить значение ячейке из ячейки
+  :p?[ 0x3A I C@ = I 1+ p?    AND 3 AND OR ]                                              		\ снять значение со стека в ячейку  
+   e?[ 0x5D I C@ = I 1+ p? I 1+ C@ 48 = OR  AND 4 AND OR ]                                              \ оставить заданное число параметров на стеке
+  "o?[ 0x22 I C@ = I 1+ p? 0= AND 5 AND OR ]                                              		\ оператор из набора двойной разрядности
+  xo?[ 0x27 I C@ = I 1+ p? 0= AND 6 AND OR ]                                              		\ дать адрес оператора всего базового набора 
+  zp?[ 0x60 I C@ = ( I 1+ p?    AND ) 7 AND OR ]								\ дать число по символу цифры
+ p1e?[ I 1- np? I p? AND        
+       I a u + 1- = I 1+ C@ ContS 3 CinStr I 1+ C@ StrBo CinStr OR OR AND 8 AND OR ]                    \ единственный параметр последний       
+p1pe?[ I 1- np? I p? AND I 1+ p? AND      
+       I 1+ a u + 1- = I 2+ C@ ContS 3 CinStr I 2+ C@ StrBo CinStr OR OR AND 9 AND OR ]                 \ два пар-ра первый и посл-ый										
+ p1p?[ I 1- np? I p? AND I 1+ p? AND I 2+ p? AND 10 AND OR ]                              		\ первые три параметра не последние
+  pp?[ I 1- p?  I p? AND I 1+ p? AND 11 AND OR ]                                          		\ два параметра не первые и не последние
+ ppe?[ I 1- p?  I p? AND I a u + 1- = I 1+ C@ ContS 3 CinStr I 1+ C@ StrBo CinStr OR OR AND 12 AND OR ] \ два пар-ра  не первый и посл-ий               								  
+ p1O?[ I 1- np? I p? AND I 1+ C@  Str2O  CinStr AND 13 AND OR ]              				\ первый пар-р с 2х оп-м оператором
+p1pO?[ I 1- np? I p? AND I 1+ p? AND I 2+ C@  Str2O  CinStr AND 14 AND OR ]  				\ первые 2 пар-ра с -/-
+  pO?[ I 1- p?  I p? AND I 1+ C@  Str2O  CinStr AND 15 AND OR ]               				\ единственный посл-й пар-р с -/-
+   o?[ I C@ StrBo2O CinStr 16 AND OR ]                                                                  \ базовый оператор не 2-х операндный
+a  C@ '/' = u 1 > AND 0= IF a u NOTFOUND EXIT THEN
+a u + a 1+
+?DO  
+\ генератор событий
+\ 1   2    3    4   5    6    7    8     9      10    11    12   13    14     15   16    
+  b?` (p?` :p?` e?` "o?` xo?` zp?` p1e?` p1pe?` p1p?` ppe?` pp?` p1O?` p1pO?` pO?` o?` 
+CASE 
+\ обработчики событий
+ 0 OF CR ." ERROR " ."  i" I a - 2 .0 SPACE I C@ EMIT SPACE ." event" 0 2 .0 SPACE CR                                             ENDOF  \ локализация возможной ошибки
+ 1 OF otl IF ." b "     THEN   pds0` TO XNST XNST 2- 4 * sset                                                                1 I+ ENDOF 							
+ 2 OF otl IF ." (p "    THEN   pds1` XnstMax < pds2` XnstMax < AND 
+              		       IF   pds1` offs d=@s pds2` offs @s=d 
+              		       ELSE pds1` XnstMax = IF pds2` offs s@s=a ELSE pds1` offs a=@s THEN 
+              		       THEN                        ( ******************************* )                                2 I+ ENDOF         					                                                                                                                                                                                                                                                                                                              
+ 3 OF otl IF ." :p "    THEN                pds1` offs @s=a  ns 1+ TO ns                                                      1 I+ ENDOF 									
+ 4 OF otl IF ." e "     THEN   XnstMax  pds1` ns + DUP 1 = IF ( DROP ) - 4 * 0x6D8D W, C, ELSE  - 4 * 0x6D8D W, C,  0x458B W, 0xFC C, THEN  0 TO ns  0 TO XNST    1 I+ ENDOF
+ 5 OF otl IF ." 2o "    THEN                                            I 1+ C@ CASE DOperators    ENDCASE                   1 I+ ENDOF
+ 6 OF otl IF ." xo "    THEN                                            I 1+ C@ CASE XOperators    ENDCASE                   1 I+ ENDOF
+ 7 OF otl IF ." zp "    THEN                                            I 1+ C@ CASE Numbers       ENDCASE                   1 I+ ENDOF                                          		
+ 8 OF otl IF ." p1e "   THEN   1@P=A        pds0` offs A=n@S 1Pa                                                 -4 TO s          ENDOF                                        		
+ 9 OF otl IF ." p1pe "  THEN   1@P=A s -4 + pds0` offs s@P=A=n@S pds1`  offs A=n@S s -4 + sPa        	         -4 TO s     1 I+ ENDOF 		
+10 OF otl IF ." p1p "   THEN   1@P=A        pds0` offs A=n@S                                                 s -4 + TO s          ENDOF 	                              		        
+11 OF otl IF ." pp "    THEN   s s@P=A      pds0` offs A=n@S                                                 s -4 + TO s          ENDOF  	                              		        
+12 OF otl IF ." ppe "   THEN   s s@P=A      pds0` offs A=n@S  s sPa                                         	 -4 TO s          ENDOF	                              		        
+13 OF otl IF ." p1O "   THEN                pds0` offs                  I 1+ C@ CASE OptOperators  ENDCASE                   1 I+ ENDOF 	
+14 OF otl IF ." p1pO "  THEN   1@P=A        pds0` offs A=n@S pds1` offs I 2+ C@ CASE OptOperators  ENDCASE 1Pa 	 -4 TO s     2 I+ ENDOF 	
+15 OF otl IF ." pO "    THEN                pds0` offs                  I 1+ C@ CASE OptOperators  ENDCASE s 4 + sPa -4 TO s 1 I+ ENDOF                    	
+16 OF otl IF ." o "     THEN           I    C@ CASE BaseOperators  0x3B FO EXIT EF 0x5C FO Cr EF   ENDCASE                        ENDOF
+ENDCASE
+LOOP
+;
+
+
+
+
+
+
+
+
+                                                                                                                                       
