@@ -38,6 +38,7 @@ I: FO ` OF ` ` ;  M: EF ENDOF ;
   i ai - ui >
   UNTIL ao o ao -
 ;
+\ коррекция слов, которые портят регистр ESI
 : Move RS=S MOVE S=RS ;
 : Search RS=S SEARCH S=RS ;
 : ).(  RS=S . S=RS ;
