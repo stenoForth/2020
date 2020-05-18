@@ -1,8 +1,7 @@
 : QuickSortBytes ( a u -- a u )
-1024 /`3[3h:412GIbg*4+jL /1:543GI@0$J4-g/5w'5jLgN /124f]
-;
+1024 /[33h:512GIbg*5+jL1:653GI@0$J5-g/6w6i:6LgN12]
+; 
 
-\ EOF
 T: arrb
 34334547667dfsfgjh54356rtrtrfuyyuihGHDRFGDRTgfghfggf2122fdrtetreghdfhg354asdfdfd
 7667dfsfgjh54356rtrtrfuyyopihjdjl;jy674597987986764rrdfjfgjhhojhokl-0=9=-9978655
@@ -23,4 +22,4 @@ upop]oopu78t5r56tuiop[opouiut6r56er56r6tyu0u09iGIRTTRWErfygukh9ii90u89y78ty78t87
 ;
 
 arrb QuickSortBytes TYPE
-tst: arrb QuickSortBytes ;  METER tst
+tst: arrb QuickSortBytes ;  METER0 tst

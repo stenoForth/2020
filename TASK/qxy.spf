@@ -16,11 +16,20 @@
 \ ...
 
 : nxy. ( n -- x0 y0 ... xn yn )
-1 /[Y:41i0$I`qiIyr`q$JId*-ad`qd:3d*=I3<~&30<~&?4J=~?J:4\J`5`bgStI`5`b3`5`byStLL] ;
+/[1{g`_`2S}:4Y:3
+/1i0$IpiIyrp
+     /$JId*-ap:2JId*2d*+=I2<~&
+       /?J3>
+         /?\J:3J4Xt
+       /24XI4Xt
+     /L
+   /L]
+; 
+
 
 : xy. ( n -- x0 y0 ... xn yn )
-1 /[1`qi1yr`q$1Id*-d`qd:3d*=?I.3.tL] ;
+/[11pi1yrp$1Id*-dpd:2d*=?I.2.tL] ;
 
-: tst 12345 nxy. ; tst
+: tst 1234 nxy. ; tst
 
 CR CR 1221025 xy.

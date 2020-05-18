@@ -1,15 +1,25 @@
 \ Преобразователь выражений вида '?.?', где ?.? - ascii-символы - от 1-го до 4-х штук в одинарное число
 
-: NOTFOUND \ a u -- n  
-  DUP >R 2DUP OVER + 1- C@  0x27 = SWAP C@ 0x27 = AND R> 3 7 WITHIN AND 0=
-  IF NOTFOUND EXIT THEN 0 -ROT  2- SWAP 1+ SWAP OVER + 1-
+: NOTFOUND \ a u -- n    
+  DUP                     \ a u  u 
+  >R                      \ a u        r: u
+  2DUP                    \ a u  a u   r: u
+  OVER +                  \ a u  a u+a r: u
+  1-   C@ [CHAR] ' =      \ a u  a fe  r: u
+  SWAP C@ [CHAR] ' =  AND \ a u  fe&fb r: u  
+  R> 3 7 WITHIN  AND 0=   \ a u  fe&fb&fu=0? 
+  IF NOTFOUND EXIT THEN 
+  0 -ROT  	\ 0 a u 
+  2-  		  \ 0 a u-2 ( 1-4)
+  SWAP 1+   \ 0 u-2 a+1   
+  SWAP 		  \ 0 a+1 u-2 
+  OVER +    \ 0 a+1 u+a
+  1-        \ 0 a+1 u+a-1
   DO 8 LSHIFT I C@ + -1 +LOOP LIT, ;
-
-: LOAD-LEX ( A U -- ) DP @ SWAP DUP ALLOT MOVE 0 C, ;
-
+: LOAD-LEX ( A U -- ) DP @ SWAP DUP ALLOT MOVE 0 C,  ;
 : load-text ( -- a u )
   5 ALLOT DP @ >R
-  BEGIN NextWord ( -- a u )
+  BEGIN NextWord ( -- a u )  
   2DUP  DUP  2 = SWAP 1 = OR  \ a u a f
         IF   DUP  W@ DUP ';M' = SWAP DUP 'm)' = SWAP DUP 'c)' = SWAP '")' = OR OR OR SWAP 
                   C@ DUP ';'  = SWAP DUP '"'  = SWAP DUP '}'  = SWAP ']'  = OR OR OR OR \ a u f
@@ -23,10 +33,8 @@
         THEN
   UNTIL
   DP @ R@ 5 - DP ! 0xE9 C, DUP R@ - ,
-  DUP DP ! R@ SWAP R> - 1-  
-; 
+  DUP DP ! R@ SWAP R> - 1-  ; 
 : LOAD-TEXT ( a u -- )  load-text DLIT,  ;
-
 : load-str ( -- a u )
   5 ALLOT DP @ >R
   BEGIN NextWord ( -- a u )
@@ -44,7 +52,26 @@
   DP @ R@ 5 - DP ! 0xE9 C, DUP R@ - ,
   DUP DP ! R@ SWAP R> - 1-
 ;
-: LOAD-STR  ( a u -- )  load-str  DLIT,  ;  
+: LOAD-STR  ( a u -- )  load-str  DLIT,  
+; 
+: load-txt ( -- a u )
+  5 ALLOT DP @ >R
+  BEGIN
+       REFILL DROP
+       13 PARSE 2DUP DROP C@ 0x95 =  \  неклавиатурный символ '•'
+          IF   2DROP 1
+          ELSE LOAD-LEX 13 C, 10 C, 0
+          THEN
+  UNTIL
+  DP @ R@ 5 - DP ! 0xE9 C, DUP R@ - ,
+  DUP DP ! R@ SWAP R> - 1-
+;
+\ Многострочные строки для печати
+: LOAD-TXT
+  load-txt DLIT,  ;
+
+: TXT: ( "name" "text" -- )
+  : LOAD-TXT POSTPONE ; ;
 
 VECT lex VECT out 
 : interp  5 ALLOT HERE >R 
@@ -57,8 +84,10 @@ VECT lex VECT out
   HERE R@ 5 - DP ! 0xE9 C, DUP R@ - , DP ! R> EXECUTE
 ;  
 \ Слова-строки многострочные - допускают комментарии вида \ .....
-: T: ( name "text" -- ) : LOAD-TEXT POSTPONE ; ;
-: t: ( name "text" -- ) : LOAD-STR  POSTPONE ; ;
+: T:   ( name "text" -- ) : LOAD-TEXT POSTPONE ; ;
+: t:   ( name "text" -- ) : LOAD-STR  POSTPONE ; ;
+\ Текст без изменения форматирования - многострочные строки
+
 \ Макросы многострочные - допускают комментарии вида \ .....
 : M: ( name "text" -- ) : IMMEDIATE LOAD-TEXT POSTPONE EVALUATE POSTPONE ; ;
 
@@ -67,7 +96,4 @@ VECT lex VECT out
   DP @ >R 1024  ALLOCATE THROW DUP >R DP !
   TRUE STATE ! EVALUATE RET, FALSE STATE !
   R@ DP @ R> -  RESIZE THROW  R> DP ! ;
-
-
-
-
+  

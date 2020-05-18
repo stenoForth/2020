@@ -14,12 +14,12 @@ VARIABLE axtloc
 
 \ формирование локального имени ( после последнего символа имени идет 0-й байт )
 : lname, ( a u -- axt)
-  TUCK		\ u a u
+  TUCK		  \ u a u
   lhere @ 	\ u a u lhere@
-  SWAP          \ u a lhere@ u -- засылаем лексему a u в словарь по указателю в lhere 
-  MOVE 		\ u
-  lhere @       \ u lhere@ 
-  + DUP         \ u+lhere@ u+lhere@ 
+  SWAP      \ u a lhere@ u -- засылаем лексему a u в словарь по указателю в lhere 
+  MOVE 		  \ u
+  lhere @   \ u lhere@ 
+  + DUP     \ u+lhere@ u+lhere@ 
   0 SWAP C!
 \  0!            \ u+lhere@ -- записали 0 после лексемы в словаре
   1+ 
@@ -97,7 +97,7 @@ USER iol 0 iol !     \ направление ввода-вывода в лок 
   '!' nf1-exit  1- headl ldhere LIT, ` !  L{ ldhere LIT, ` @ RET, ldhere LIT, ` ! RET,   ldhere 1 CELLS + TO ldhere }L ;
 : NOTFOUND ( a u --  ) \ 2value
   '!d' nf2-exit  2- headl ldhere LIT, ` 2!  L{ ldhere LIT, ` 2@ RET, ldhere LIT, ` 2! RET, ldhere 2 CELLS + TO ldhere }L ;
-: NOTFOUND ( a u --  ) \ 2value
+: NOTFOUND ( a u --  ) \ fvalue
   '!f' nf2-exit  2- headl ` FLOAT>DATA ldhere LIT, ` 2!  L{ ldhere LIT, ` 2@ ` DATA>FLOAT RET, ` FLOAT>DATA ldhere LIT, ` 2! RET, ldhere 2 CELLS + TO ldhere }L ;
 : NOTFOUND ( a u --  ) \ wvalue
   '!w' nf2-exit  2- headl ldhere LIT, ` W!  L{ ldhere LIT, ` W@ RET, ldhere LIT, ` W! RET, ldhere 2+ TO ldhere }L ;
