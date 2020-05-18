@@ -1,0 +1,13 @@
+\ сравнение с SPF4
+
+: s+ /[313+d:5h:441V241+3V4f] ;
+
+: sf+ { u1 a2 u2 \ a u }
+u1 u2 + DUP TO u /h TO a
+a u1 MOVE a2 a u1 + u2 MOVE  a /f ; 
+
+SEE s+
+SEE sf+ SEE DRMOVE SEE RALLOT
+
+: tst  20000000 0 DO S" 123 " S" abc" s+  LOOP  ; DMETER tst  ( 2990493  MKCEK )
+: tsts 20000000 0 DO S" 123 " S" abc" sf+ LOOP  ; DMETER tsts ( 3158592  MKCEK )

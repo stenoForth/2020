@@ -1,0 +1,95 @@
+без префикса               префикс "                   префикс `                         
+a ABS        ! !           a DABS       ! 2!           a            !                                 
+b C@         "             b W@         "              b n.0b       "                                   
+c Emit       # <>          c            #              c            #                                 
+d DUP        $ ?DO         d 2DUP       $              d            $                                 
+e ELSE       % MOD         e            %              e            %                                  
+f hFree      & AND         f            & DAND         f F>DS       &                                     
+g CELL       '             g 4byte      '              g            '                                  
+h hAlloc     ( pref        h hex        (              h n.0h       (                                   
+i 1+         ) suff        i            )              i 1-         )                                  
+j 1+!        * *           j            *              j 1-!        *                                  
+k KEY        + +           k            + D+           k kbyte      +                                  
+l LSHIFT     , LITERAL     l DLSHIFT    , 2LITERAL     l            ,                                  
+m MIN        - -           m            - D-           m            -                                 
+n NEGATE     . ).(         n DNEGATE    . )D.(         n            .                                 
+o AGAIN      / /           o 8byte      /              o            /                                  
+p sqrt       0 FALSE       p            0 Dnull        p ).0(       0 stack0                           
+q Compare    1             q            1              q            1 zifra1                          
+r RSHIFT     2             r DRSHIFT    2              r            2 zifra2                           
+s Search     3             s            3              s DS>F       3 zifra3                           
+t THEN       4             t            4              t            4 zifra4                          
+u hResize    5             u            5              u            5 zifra5                           
+v EVALUATE   6             v            6              v            6 zifra6                           
+w C!         7             w W!         7              w            7 zifra7                           
+x DROP       8             x 2DROP      8              x            8 zifra8                          
+y odin       9             y Dodin      9              y            9 zifra9                           
+z 0<>        :             z D0<>       :              z 0!         :                                 
+A            ; Exit        A            ;              A zifraA     ;                                  
+B            < <           B            < D<           B zifraB     <                                  
+C            = =           C            = D=           C zifraC     =                                  
+D            > >           D            > D>           D zifraD     >                                 
+E            ? IF          E            ?              E zifraE     ?                                  
+F            @ @           F            @ 2@           F zifraF     @                                 
+G aDO        \ Cr          G            \              G            \                                 
+H WITHIN     ] suff        H            ]              H            ]                                 
+I I          ^ XOR         I            ^ DXOR         I            ^                                 
+J J          _             J            _              J            _ .bl                              
+K EKEY       `             K            `              K            `                                 
+L LOOP       { LAMBDA{     L            {              L            {                                 
+M MAX        | OR          M            | DOR          M            |                                 
+N +LOOP      } }LAMBDA     N            }              N            }                                 
+O BEGIN      ~ INVERT      O            ~ DINVERT      O            ~                                 
+P DEPTH                    P                           P                                              
+Q LEAVE                    Q                           Q                                              
+R REPEAT                   R                           R                                              
+S Spaces                   S                           S                                              
+T Type                     T                           T                                              
+U UNTIL                    U                           U                                              
+V Move                     V                           V                                              
+W WHILE                    W                           W                                              
+X EXECUTE                  X                           X                                              
+Y TRUE                     Y                           Y                                                    
+Z 0=                       Z D0=                       Z                                               
+                                                                                                       
+                                                                                                      # <>                                     
+                                                                                                      $ ?DO                                      
+                                                                                                      % MOD                                      
+                                                                                                      & AND                                      
+                                                                                                      ( pref                                       
+                                                                                                      ) suff                                    
+                                                                                                      * *                                        
+                                                                                                      + +                                        
+                                                                                                      , LITERAL                                  
+                                                                                                      - -                                        
+                                                                                                      . ).(                                        
+                                                                                                      / /                                        
+                                                                                                      ; Exit                                     
+                                                                                                      < <                                        
+                                                                                                      = =                                        
+                                                                                                      > >                                        
+                                                                                                      ? IF                                       
+                                                                                                      @ @                                        
+                                                                                                      [ CASE                                     
+                                                                                                      \ Cr                                       
+                                                                                                      ] ENDCASE                                  
+                                                                                                      ^ XOR                                      
+                                                                                                      _                                    
+                                                                                                      { LAMBDA{                                  
+                                                                                                      | OR                                       
+                                                                                                      } }LAMBDA                                  
+                                                                                                      ~ INVERT                                   
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
