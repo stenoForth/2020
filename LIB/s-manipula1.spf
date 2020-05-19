@@ -168,7 +168,7 @@ z F0<        Z F0=
    suf( 0x5E C, ) 		 																	      
    
 \ массив наборов символов операторов 
-StrBo2O" abcdefghijklmnopqrstuvwxyzGHIJKLMNOPQRSTUVWXYZ!@,.{}0+-*/%=><#~|^&?;\$() "       \ все базовые
+StrBo2O" abcdefghijklmnopqrstuvwxyzGHIJKLMNOPQRSTUVWXYZ!@,.{}0+-*/%=><#~|^&?;\$()_ "       \ все базовые
 Str2O" +-*/%=><#^|& "                                                                     \ 2х-операндные оптимизированные
 
 d?( 49 58 WITHIN )                   h?( 65 71 WITHIN )       \ символ дес-ная, шест-ная цифра                                 

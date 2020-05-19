@@ -16,7 +16,7 @@
 \ ...
 
 : nxy. ( n -- x0 y0 ... xn yn )
-/[1{g`_`2S}:4Y:3
+/[1{g_`2S}:4Y:3
 /1i0$IpiIyrp
      /$JId*-ap:2JId*2d*+=I2<~&
        /?J3>
@@ -25,7 +25,6 @@
      /L
    /L]
 ; 
-
 
 : xy. ( n -- x0 y0 ... xn yn )
 /[11pi1yrp$1Id*-dpd:2d*=?I.2.tL] ;
