@@ -17,7 +17,8 @@ I: n%  0x4E8B W, C,  0x99 C,    0xF1F7 W,  0xC28B W, ;
 
 M: aDO   OVER + SWAP ?DO ;    \ макрос ( BOUND ?DO )
 M: I+  ( n -- )  R@ + RP@ ! ; \ макрос: увеличить счетчик цикла на n со стека
-M: pref RS=S ;  M: suff S=RS ;
+M: pref RS=S ;  
+M: suff S=RS ;
 
 : odin  1 ;  : hex  16 ;  : 4byte  32 ; : 8byte 64 ; : kbyte  1024 ;  : mbyte  1048576 ;
 : symD 48 ;  : symH 55 ;
@@ -61,7 +62,8 @@ M: 1-! ( addr --)   @A-- DROP ;
 : )D.( RS=S  D.  S=RS ;
 M: Exit S=RS EXIT ; 
 
-I: FO ` OF ` ` ;  M: EF ENDOF ;
+I: FO ` OF ` ` ;  
+M: EF   ENDOF  ;
 
 : conv-so   ui! ai! ai i!
   2000 ALLOCATE THROW ao! 2000 uo! ao o! ao uo ERASE
@@ -71,16 +73,15 @@ I: FO ` OF ` ` ;  M: EF ENDOF ;
   i ai - ui >
   UNTIL ao o ao -
 ;
-
 : S:  : IMMEDIATE load-str conv-so DLIT, ` EVALUATE ` ; ;
 
 S: BaseOperators 
 a ABS                      ! !          
-b C@                       \ Cr       
+b C@                              
 c Emit                     0 FALSE             
 d DUP                      % MOD        
 e ELSE                     & AND        
-f hFree                               
+f hFree                    _ .bl           
 g CELL       G aDO         $ ?DO         
 h hAlloc     H WITHIN      * *          
 i 1+         I I           + +          
@@ -110,8 +111,7 @@ S: DOperators
 a DABS                ! 2!         
 b W@                  & DAND        
 d 2DUP                + D+          
-g 4byte               , 2LITERAL 
-h hex   
+g 4byte               , 2LITERAL    
 l DLSHIFT             - D-         
 n DNEGATE 
 o 8byte               . )D.(         
@@ -125,27 +125,31 @@ Z D0=                 | DOR
 ;
 S: OptOperators   ^ n^  & n&  | n|  + n+  - n-  * n*  / n/  % n%  = n=  # n#  > n>  < n<  
 ; 
-
-: zifra1  1 ; : zifra2  2 ; : zifra3  3 ; : zifra4  4 ; : zifra5  5 ; 
-: zifra6  6 ; : zifra7  7 ; : zifra8  8 ; : zifra9  9 ; : zifraA 10 ; 
-: zifraB 11 ; : zifraC 12 ; : zifraD 13 ; : zifraE 14 ; : zifraF 15 ; 
-
 : stack0 S0 @ SP! ;
 
 \ символы с префиксом `
-S: Numbers
-1 zifra1  2 zifra2  3 zifra3   4 zifra4  5 zifra5  
-6 zifra6  7 zifra7  8 zifra8   9 zifra9  A zifraA       
-B zifraB  C zifraC  D zifraD   E zifraE  F zifraF
-d symD    h symH
-i 1-      j 1-!     s DS>F     f F>DS    0 stack0
-b n.0b    h n.0h    p ).0(     _ .bl     z 0!
+S: FOperators                                                           
+a FABS                  0 0!    
+b n.0b                  + F+    
+c FCOS                  - F-
+e stack0                * F*     
+d FDUP                  / F/      
+f F>DS                  < F< 
+h hex                   = F=     
+i 1-         I F1+      @ F@           
+j 1-!                   ! F!     
+k kbyte      K mbyte    . F.             
+m FMIN       M FMAX           
+n FNEGATE                    
+p ).0(       P FPI                    
+s DS>F       Q FSQRT                 
+t FTAN
+x FDROP
+z F0<        Z F0=                       
 ;
-
 : CinStr { s a u -- tf }  
   0 a u + a DO I C@ s = IF DROP TRUE LEAVE THEN LOOP 
 ;
-
 \ парсер + компилятор 
 
 0 VALUE OTL
@@ -165,15 +169,15 @@ b n.0b    h n.0h    p ).0(     _ .bl     z 0!
    
 \ массив наборов символов операторов 
 StrBo2O" abcdefghijklmnopqrstuvwxyzGHIJKLMNOPQRSTUVWXYZ!@,.{}0+-*/%=><#~|^&?;\$() "       \ все базовые
-Str2O" +-*/%=><#^|& "                                                                   \ 2х-операндные оптимизированные
+Str2O" +-*/%=><#^|& "                                                                     \ 2х-операндные оптимизированные
 
-d?( 49 58 WITHIN )                   h?( 65 71 WITHIN )   \ символ дес-ная, шест-ная цифра                                 
-PDS( d? IF '0' ELSE '7' THEN - )     offs( 1- -4 * )      \ вычисление смещения для регистра указателя ESI по номеру пар-ра
-p?( C@ DUP d? >R h? R> OR )                  						  \ параметр                                                       
-np?( C@ DUP d? >R h? R> OR 0= )                           \ не параметр                                                    
-pds0[ I    C@ I C@    PDS ]                  						  \ номер ячейки на 1й позиции                                     
-pds1[ I 1+ C@ I 1+ C@ PDS ]                  						  \ номер ячейки на 2й позиции 
-pds2[ I 2+ C@ I 2+ C@ PDS ]                  						  \ номер ячейки на 3й позиции                                    
+d?( 49 58 WITHIN )                   h?( 65 71 WITHIN )       \ символ дес-ная, шест-ная цифра                                 
+PDS( d? IF '0' ELSE '7' THEN - )     offs( 1- -4 * )          \ вычисление смещения для регистра указателя ESI по номеру пар-ра
+p?( C@ DUP d? >R h? R> OR )                  						      \ параметр                                                       
+np?( C@ DUP d? >R h? R> OR 0= )                               \ не параметр                                                    
+pds0[ I    C@ I C@    PDS ]                  						      \ номер ячейки на 1й позиции                                     
+pds1[ I 1+ C@ I 1+ C@ PDS ]                  						      \ номер ячейки на 2й позиции 
+pds2[ I 2+ C@ I 2+ C@ PDS ]                  						      \ номер ячейки на 3й позиции                                    
                                                                                                                            
 \ анализ символов - события                                                                                                
    b?[ '[' I C@ =                            1 AND    ]       \ переместить заданное число параметров со стека в буфер на стеке                               
@@ -183,7 +187,7 @@ pds2[ I 2+ C@ I 2+ C@ PDS ]                  						  \ номер ячейки �
   zp?[ '`' I C@ =                            5 AND OR ]	      \ положить на стек параметр по символу цифры                                    
    o?[ I C@ StrBo2O CinStr                   6 AND OR ]       \ выполнить оператор всего базового набора                                 
   p1?[ I p? I 1+ C@ Str2O CinStr 0= I 1+ C@ ':' <> AND AND  7 AND OR ] \ положить параметр из заданной ячейки буфера на стек                                                                                                  
-  pO?[ I p? I 1+ C@  Str2O  CinStr  AND      8 AND OR ]       \ выполнить оптимизированный 2-х операндный оператор для параметров на стеке и в заданной ячейке                                                       
+  pO?[ I p? I 1+ C@  Str2O  CinStr  AND      8 AND OR ]       \ выполнить оптимизированный оператор для параметров на стеке и в заданной ячейке                                                       
   p:?[ I p?  I 1+ C@ ':' = AND I 2+ p?  AND  9 AND OR ]       \ заслать из ячейки в ячейку
    e?[ ']' I C@ =                           10 AND OR ]       \ конец определения   
        
@@ -205,11 +209,12 @@ CASE
  0 OF ." Err " ." i:" I a - 3 .0 ." '" I C@ EMIT ." '" SPACE                                        ENDOF  \ локализация синтаксических ошибок
  1 OF otl IF ." b  " CR THEN  prf sset I 1+ p? IF                                                          \ сохранение ESI в стеке возвратов
                 pds1` 1+ DUP 1- DO I 1+ 1 DO J I - -4 * 0x4689 W, C, I 1- 4 * 0x458B W, C, LOOP            
-                                             I 4 * 0x6D8D W, C, LOOP 1 I+ THEN                      ENDOF \ уст-ка ESI и сброс параметров со стека в буфер
+                                             I 4 * 0x6D8D W, C, LOOP 1 I+ THEN                      ENDOF  \ уст-ка ESI и сброс параметров со стека в буфер
  2 OF otl IF ." :p " CR THEN  pds1` offs  @s=a                                                 1 I+ ENDOF  \ снять со стека в заданную ячейку        
  3 OF otl IF ." 2o " CR THEN  I 1+ C@ CASE DOperators    ENDCASE                               1 I+ ENDOF  \ оператор двойной разрядности
  4 OF otl IF ." xo " CR THEN  I 1+ C@ CASE XOperators    ENDCASE                               1 I+ ENDOF  \ получение адреса кода оператора
- 5 OF otl IF ." zp " CR THEN  I 1+ C@ CASE Numbers       ENDCASE                               1 I+ ENDOF  \ число на стек по символу цифры                                        		
+ 5 OF otl IF ." zp " CR THEN  I 1+ p?  
+                     IF pds1` LIT, ELSE I 1+ C@  CASE FOperators 0x3B FO RET, EF ENDCASE THEN  1 I+ ENDOF  \ число на стек по символу цифры или оператор                                       		
  6 OF otl IF ." o  " CR THEN  I    C@ CASE BaseOperators 0x3B FO Exit EF 0x5C FO Cr EF ENDCASE      ENDOF  \ оператор
  7 OF otl IF ." p1 " CR THEN  1@P=A pds0` offs A=n@S 1Pa                                            ENDOF  \ положить на стек из заданной ячейки 
  8 OF otl IF ." pO " CR THEN  pds0` offs I 1+ C@ CASE OptOperators  ENDCASE                    1 I+ ENDOF  \ оптимизированный оператор
@@ -218,12 +223,4 @@ CASE
 ENDCASE
 LOOP 
 ;
-
-
-
-
-
-
-
-
-                                                                                                                                       
+                                                                                                                                     
