@@ -14,7 +14,6 @@ I: n*  0x6EF7 W, C, ;
 I: n/  0x4E8B W, C,  0x99 C,    0xF1F7 W, ;
 I: n%  0x4E8B W, C,  0x99 C,    0xF1F7 W,  0xC28B W, ;
 
-
 M: aDO   OVER + SWAP ?DO ;    \ макрос ( BOUND ?DO )
 M: I+  ( n -- )  R@ + RP@ ! ; \ макрос: увеличить счетчик цикла на n со стека
 M: pref RS=S ;  
@@ -143,7 +142,7 @@ m FMIN       M FMAX
 n FNEGATE                    
 p ).0(       P FPI                    
 s DS>F       Q FSQRT                 
-t FTAN
+t FTAN       R RECURSE
 x FDROP
 z F0<        Z F0=                       
 ;
@@ -154,8 +153,8 @@ z F0<        Z F0=
 
 0 VALUE OTL
 : NOTFOUND { a u  \ otl }  OTL TO otl  
-  a  C@ '/' = u 1 > AND 0= IF a u NOTFOUND EXIT THEN
- 
+  a  C@ '/' = u 1 > AND 0= IF a u NOTFOUND EXIT THEN 
+
    sset( 0xF58B W, 0xC683 W, 0x80 C, )                        \ MOV ESI, EBP ADD ESI, # -128  записать адрес буфера в ESI                                                             
    @s=a( 0x4689 W, C, 0x458B W, 0x00 C, 0x6D8D W, 0x4 C, )   	\ снять со стека в заданную ячейку буфера
   n@S=A( 0x4689 W, C, )                                       \ скопировать со стека в заданную ячейку буфера
@@ -168,7 +167,7 @@ z F0<        Z F0=
    suf( 0x5E C, ) 		 																	      
    
 \ массив наборов символов операторов 
-StrBo2O" abcdefghijklmnopqrstuvwxyzGHIJKLMNOPQRSTUVWXYZ!@,.{}0+-*/%=><#~|^&?;\$()_ "       \ все базовые
+StrBo2O" abcdefghijklmnopqrstuvwxyzGHIJKLMNOPQRSTUVWXYZ!@,.{}0+-*/%=><#~|^&?;\$()_ "      \ все базовые
 Str2O" +-*/%=><#^|& "                                                                     \ 2х-операндные оптимизированные
 
 d?( 49 58 WITHIN )                   h?( 65 71 WITHIN )       \ символ дес-ная, шест-ная цифра                                 

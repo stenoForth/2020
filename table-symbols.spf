@@ -39,7 +39,7 @@ N +LOOP    "N          `N
 O BEGIN    "O          `O          
 P DEPTH    "P          `P FPI        
 Q LEAVE    "Q          `Q FSQRT 
-R REPEAT   "R          `R       
+R REPEAT   "R          `R RECURSE      
 S Spaces   "S          `S
 T Type     "T          `T
 U UNTIL    "U          `U
